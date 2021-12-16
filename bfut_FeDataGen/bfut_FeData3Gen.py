@@ -1,6 +1,5 @@
 """
     bfut_FeData3Gen.py - generates FeData3 files in script folder
-
     Copyright (C) 2021 and later Benjamin Futasz <https://github.com/bfut>
 
     This software is provided 'as-is', without any express or implied
@@ -19,9 +18,8 @@
        misrepresented as being the original software.
     3. This notice may not be removed or altered from any source distribution.
 """
-# format specs due to D. Auroux et al. Thanks!
+# format specs due to D. Auroux et al. [1998] Thanks!
 
-import contextlib
 import pathlib
 import numpy as np
 from struct import *
@@ -45,7 +43,7 @@ data = {
      "manufacturer" : "Placeholder",
             "model" : "A",
          "car name" : "Placeholder A",
-            "price" : "3.000 $",
+            "price" : "$3,000",
            "status" : "selfmade",
 "transmission type" : "manual",
     "history line1" : "Placeholder",
@@ -65,7 +63,7 @@ data = {
            "color7" : "",
 #           "color8" : "",
            "color9" : None,
-          "color10" : None
+          "color10" : None,
 }
 
 
@@ -74,75 +72,76 @@ fname = "fedata."
 fendings = ["bri", "eng", "fre", "ger", "ita", "spa", "swe"]
 
 hdr_offset = 0xcf
+# Assumes dtype == str unless mentioned otherwise
 offsets = [
-"id",
-0x09,
-0x00,
-0x01,
-"class",
-0x03,
-0x00,
-"pursuit",
-0x00,
-0x00,
-0x80,
-"serial number",
-0x00,
-0x00,
-0x00,
-0x00,
-0x00,
-0x00,
-0x00,  # 0x0026
+    "id",
+    0x09,
+    0x00,
+    0x01,
+    "class",
+    0x03,
+    0x00,
+    "pursuit",
+    0x00,
+    0x00,
+    0x80,
+    "serial number",  # int
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,  # 0x0026
 
-"car acceleration",  # 0x0028
-"car top speed",
-"car handling",
-"car braking",
-0x5,
+    "car acceleration",  # int  # 0x0028
+    "car top speed",  # int
+    "car handling",  # int
+    "car braking",  # int
+    0x5,
 
-0x28,
+    0x28,
 
-"manufacturer",
-"model",
-"car name",
-"price",
-"status",
-"weight",
-"weight dist",
-"length",
-"width",
-"height",
-"engine",
-"displacement",
-"hp",
-"torque",
-"max engine speed",
-"brakes",
-"tires",
-"top speed",
-"time 0-60",  # str / float
-"time 0-100",  # str / float
-"transmission type",
-"num gears",
-"history line1",
-"history line2",
-"history line3",
-"history line4",
-"history line5",
-"history line6",
-"history line7",
-"history line8",
-"color1",
-"color2",
-"color3",
-"color4",
-"color5",
-"color6",
-"color7",
-"color8",
-"color9",
-"color10",
+    "manufacturer",
+    "model",
+    "car name",
+    "price",
+    "status",
+    "weight",
+    "weight dist",
+    "length",
+    "width",
+    "height",
+    "engine",
+    "displacement",
+    "hp",
+    "torque",
+    "max engine speed",
+    "brakes",
+    "tires",
+    "top speed",
+    "time 0-60",
+    "time 0-100",
+    "transmission type",
+    "num gears",
+    "history line1",
+    "history line2",
+    "history line3",
+    "history line4",
+    "history line5",
+    "history line6",
+    "history line7",
+    "history line8",
+    "color1",
+    "color2",
+    "color3",
+    "color4",
+    "color5",
+    "color6",
+    "color7",
+    "color8",
+    "color9",
+    "color10",
 ]
 
 
@@ -229,30 +228,29 @@ for fending in fendings:
     output_path = pathlib.Path(script_path / p)
     print(output_path)
     with open(output_path, mode='wb') as f:
-        with contextlib.redirect_stdout(f):
-            """
-            file header
-            """
-            for i in range(len(header)):
-                x = header[i]
+        """
+        file header
+        """
+        for i in range(len(header)):
+            x = header[i]
 
-                if type(x) == int and (i < 19 or i == 24):
-                    f.write(pack('<H', x))
-                elif type(x) == int and i < 24:
-                    f.write(pack('B', x))
-                #elif type(x) == float and (i in [43, 44]):
-                #    f.write( pack('f', x) )
-                elif type(x) == int:
-                    f.write(pack('<I', x))
-                else:
-                    for c in x:
-                        f.write(c.encode('ascii', 'ignore'))
-            """
-            file main body
-            """
-            for i in range(25, len(offsets)):
-                key = offsets[i]
-                if key in data and data[key] != None:
-                    for c in data[key]:
-                        f.write(c.encode('ascii', 'ignore'))
-                f.write(pack('<B', 0))
+            if type(x) == int and (i < 19 or i == 24):
+                f.write(pack('<H', x))
+            elif type(x) == int and i < 24:
+                f.write(pack('B', x))
+            #elif type(x) == float and (i in [43, 44]):
+            #    f.write( pack('f', x) )
+            elif type(x) == int:
+                f.write(pack('<I', x))
+            else:
+                for c in x:
+                    f.write(c.encode('ascii', 'ignore'))
+        """
+        file main body
+        """
+        for i in range(25, len(offsets)):
+            key = offsets[i]
+            if key in data and data[key] != None:
+                for c in data[key]:
+                    f.write(c.encode('ascii', 'ignore'))
+            f.write(pack('<B', 0))

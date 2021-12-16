@@ -1,6 +1,5 @@
 """
     bfut_Art2Tga.py - from given ART archive unpack TGA data to subfolder
-
     Copyright (C) 2021 and later Benjamin Futasz <https://github.com/bfut>
 
     This software is provided 'as-is', without any express or implied
@@ -20,7 +19,6 @@
     3. This notice may not be removed or altered from any source distribution.
 """
 import argparse
-import contextlib
 import os
 import pathlib
 
@@ -53,21 +51,21 @@ with open(input_file, mode='rb') as f:
 offset = 0
 i = 0
 while offset < len(buf):
-    TGA_width = int.from_bytes(buf[offset:offset + 4], "little")
-    TGA_height = int.from_bytes(buf[offset:offset + 4], "little")
+    TGA_width = int.from_bytes(buf[offset:offset + 0x4], "little")
+    TGA_height = int.from_bytes(buf[offset + 0x4:offset + 0x8], "little")
     TGA_data_size = 4 * TGA_width * TGA_height
+    print(TGA_width, TGA_height)
 
     # print(TGA_width, TGA_height, TGA_data_size, output_path, offset, flush=True)
     with open(pathlib.Path(output_path / (format(i, '04d') + ".tga")), mode='wb') as f:
-        with contextlib.redirect_stdout(f):
-            f.write(TGA_header1)
-            f.write(TGA_width.to_bytes(2, "little"))
-            f.write(TGA_height.to_bytes(2, "little"))
-            f.write(TGA_header2)
-            f.write(buf[offset + 0x8:offset + 0x8 + TGA_data_size])
-            f.write(TGA_footer)
-    print("written output file", pathlib.Path(output_path / (format(i, '04d') + ".tga")), flush=True)
+        f.write(TGA_header1)
+        f.write(TGA_width.to_bytes(2, "little"))
+        f.write(TGA_height.to_bytes(2, "little"))
+        f.write(TGA_header2)
+        f.write(buf[offset + 0x8:offset + 0x8 + TGA_data_size])
+        f.write(TGA_footer)
+    print("wrote output file {}".format(pathlib.Path(output_path / (format(i, '04d') + ".tga"))), flush=True)
 
     offset += 0x8 + TGA_data_size
     i += 1
-print("extracted", i, "TGA files", flush=True)
+print("extracted {} TGA files".format(i), flush=True)

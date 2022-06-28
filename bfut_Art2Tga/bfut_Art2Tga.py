@@ -1,22 +1,25 @@
+# Copyright (C) 2021 and later Benjamin Futasz <https://github.com/bfut>
+#
+# This software is provided 'as-is', without any express or implied
+# warranty.  In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would be
+#    appreciated but is not required.
+# 2. Altered source versions must be plainly marked as such, and must not be
+#    misrepresented as being the original software.
+# 3. This notice may not be removed or altered from any source distribution.
 """
 bfut_Art2Tga.py - from given ART archive unpack TGA data to subfolder
-Copyright (C) 2021 and later Benjamin Futasz <https://github.com/bfut>
 
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any damages
-arising from the use of this software.
-
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not
-    claim that you wrote the original software. If you use this software
-    in a product, an acknowledgment in the product documentation would be
-    appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be
-    misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
+HOW TO USE
+    python 'bfut_Art2Tga.py' /path/to/file.art
 """
 import argparse
 import os
@@ -42,7 +45,7 @@ def main():
     tga_header2 = b"\x20\x28"
     tga_footer = b"\x00\x00\x00\x00\x00\x00\x00\x00TRUEVISION-XFILE.\x00"
 
-    print(f"File = {input_file}", flush=True)
+    print(f"File = {input_file}")
     buf = input_file.read_bytes()
     offset = 0
     i = 0

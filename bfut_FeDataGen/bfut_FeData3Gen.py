@@ -1,35 +1,32 @@
 """
-    bfut_FeData3Gen.py - generates FeData3 files in script folder
-    Copyright (C) 2021 and later Benjamin Futasz <https://github.com/bfut>
+bfut_FeData3Gen.py - generates FeData3 files in script folder
+Copyright (C) 2021 and later Benjamin Futasz <https://github.com/bfut>
 
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 """
 # format specs due to D. Auroux et al. [1998]
-
 import pathlib
-import numpy as np
 import struct
 
 def main():
     script_path = pathlib.Path(__file__).parent
     output_folder = "./"
 
-
-    # --------------------------------------
+    # -------------------------------------- Set properties here
     data = {
                "id" : "plac",
             "class" : "A",
@@ -67,10 +64,9 @@ def main():
               "color10" : None,
     }
 
-
     # --------------------------------------
     fname = "fedata."
-    fendings = ["bri", "eng", "fre", "ger", "ita", "spa", "swe"]
+    fendings = [ "bri", "eng", "fre", "ger", "ita", "spa", "swe" ]
 
     hdr_offset = 0xcf
     # Assumes dtype == str unless mentioned otherwise
@@ -145,9 +141,9 @@ def main():
         "color10",
     ]
 
-
-    header = np.empty(len(offsets), dtype=int)
-    header = list(header)
+    # Create Fedata3
+    assert len(offsets) == 65
+    header = [0] * len(offsets)
     ptr = hdr_offset
     ofs = 0 + 0x2f  # debug
     for i in range(len(offsets)):
@@ -193,54 +189,57 @@ def main():
             else:
                 ptr += 1
 
-    print(hdr_offset,
-          header[24],
-          "\n", header)
+    print(hdr_offset)
+    print(header[24])
+    print(header)
 
-    for x in header:
-        if isinstance(x, str):
-            for c in x:
-                print(c, bytes(c.encode("ascii", "ignore")), ord(c), c.encode("ascii", "ignore"))
+    # verbose: print encoded header items
+    for item in header:
+        if isinstance(item, str):
+            for c in item:
+                print(c, bytes(c.encode("ascii", "ignore")), ord(c),
+                      c.encode("ascii", "ignore"))
         """
         else:
             print(
-            str(hex(x)),
-            bytes( str(x).encode("ascii", "ignore"), )
+            str(hex(item)),
+            bytes( str(item).encode("ascii", "ignore"), )
             )
             print(
-            f"{x:04x}",
-            type( f"{x:04x}" ),
+            f"{item:04x}",
+            type(f"{item:04x}"),
             ord(str(9)),
             chr(9),
             "foo",
-            f"{x:04x}"[::-1],
+            f"{item:04x}"[::-1],
             str(9),
-            pack("<I", x),
-            str( pack("<I", x) ),
-            type( pack("<I", x) ),
+            struct.pack("<I", item),
+            str(struct.pack("<I", item)),
+            type(struct.pack("<I", item)),
             )
     #    """
+
+    # Write output
     for fending in fendings:
-        p = output_folder + fname + fending
-        output_path = pathlib.Path(script_path / p)
+        output_path = script_path / (output_folder + fname + fending)
         print(output_path)
         with open(output_path, mode="wb") as f:
-            """ file header """
+            # file header
             for i in range(len(header)):
-                x = header[i]
+                item = header[i]
 
-                if isinstance(x, int) and (i < 19 or i == 24):
-                    f.write(struct.pack("<H", x))
-                elif isinstance(x, int) and i < 24:
-                    f.write(struct.pack("B", x))
+                if isinstance(item, int) and (i < 19 or i == 24):
+                    f.write(struct.pack("<H", item))
+                elif isinstance(item, int) and i < 24:
+                    f.write(struct.pack("B", item))
                 #elif type(x) == float and (i in [43, 44]):
                 #    f.write( pack("f", x) )
-                elif isinstance(x, int):
-                    f.write(struct.pack("<I", x))
+                elif isinstance(item, int):
+                    f.write(struct.pack("<I", item))
                 else:
-                    for c in x:
+                    for c in item:
                         f.write(c.encode("ascii", "ignore"))
-            """ file main body """
+            # file main body
             for i in range(25, len(offsets)):
                 key = offsets[i]
                 if key in data and data[key] is not None:

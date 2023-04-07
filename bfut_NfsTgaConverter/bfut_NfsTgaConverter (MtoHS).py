@@ -43,6 +43,21 @@ DOCUMENTATION
 
 TOOLS USED
     hex editor, text editor
+
+APPENDIX
+    Steps to convert part.fsh and dash.fsh to TGA:
+    1. Apply fshtool 1.22 or later
+    2. On Linux, e.g., run the following script in a terminal to merge the resulting bitmaps
+        #!/bin/sh
+        OFILE="${1%%.*}"
+        convert "${1}" "${2}" -alpha off -compose CopyOpacity -composite "${OFILE}.tga"
+
+    Steps to convert TGA to part.fsh and dash.fsh:
+    1. On Linux, e.g., run the following script in a terminal to split tga to bitmaps
+        #!/bin/sh
+        OFILE="${1%%.*}"
+        convert "${1}" -alpha extract "${OFILE}-a.bmp"
+    2. Apply fshtool 1.22 or later
 """
 import argparse
 import pathlib

@@ -19,7 +19,7 @@
 bfut_Tga2Art.py - generates ART archive from TGA files in given folder (input files sorted)
 
 HOW TO USE
-    python 'bfut_Tga2Art.py' /path/to/directory
+    python "bfut_Tga2Art.py" /path/to/directory
 """
 import argparse
 import pathlib

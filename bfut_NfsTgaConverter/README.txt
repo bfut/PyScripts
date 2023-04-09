@@ -22,40 +22,51 @@ USAGE
     python "bfut_NfsTgaConverter (Mto3).py" [</path/to/file>|</path/to/directory>]
 
     If input path is a directory, apply script to all contained *.tga and *.TGA files.
-    If no input path is given, current working directory is used.
+    If no input path is given, the script directory is used.
 
 DOCUMENTATION
     NFS3        = NFS:HS       = MCO      = description
     ==================================================================
-    car00.tga   = car##.tga    = part.fsh =
-                = dash##.tga   = dash.fsh =
+    car00.tga   = car#00.tga   = part.fsh =
+                = dash00.tga   = dash.fsh =
     ==================================================================
-      0+6  0x00 =         0x00 =     0x00 = solid
+      0+6  0x00 =   0+6   0x00 =   0 0x00 = solid
     117+-6 0x75 = 223+-6  0xDF = 200 0xC8 = primary color
     200+-6 0xC8 =  96+-6  0x60 = 180 0xB4 = secondary color
-        n/a     = 163+-6  0xA3 =  80 0x50 = interior color
-        n/a     =              =          = driver hair
-        n/a     =     n/a      =  40 0x28 = seats interior color
-        n/a     =     n/a      = 100 0x64 = dashboard interior color 1
-        n/a     =     n/a      = 120 0x78 = dashboard interior color 2
-    255-6  0xFF = 255     0xFF =     0xFF = transparent
+     n/a        = 163+-6  0xA3 =  80 0x50 = interior color
+     n/a        =              =  n/a     = driver hair color
+     n/a        =  n/a         =  40 0x28 = seats interior color
+     n/a        =  n/a         = 100 0x64 = dashboard interior color 1
+     n/a        =  n/a         = 120 0x78 = dashboard interior color 2
+    255-6  0xFF = 255-6   0xFF = 255 0xFF = transparent
     ==================================================================
 
 TOOLS USED
     hex editor, text editor
 
 APPENDIX
-    Steps to convert part.fsh and dash.fsh to TGA:
-    1. Apply fshtool 1.22 or later
-    2. On Linux, e.g., run the following script in a terminal to merge the resulting bitmaps
+    Convert file.fsh to file.tga on Linux:
+    1. Apply fshtool
+        fshtool path/to/file.fsh
+    2. Run the following script in a terminal to merge the resulting bitmaps to TGA
         #!/bin/sh
         OFILE="${1%%.*}"
-        convert "${1}" "${2}" -alpha off -compose CopyOpacity -composite "${OFILE}.tga"
+        convert "${1}" "${2}" -auto-orient -alpha off -compose CopyOpacity -composite "${OFILE}.tga"
 
-    Steps to convert TGA to part.fsh and dash.fsh:
-    1. On Linux, e.g., run the following script in a terminal to split tga to bitmaps
+    Convert file.tga to file.fsh on Linux:
+    1. Run the following script in a terminal to extract TGA to rgb and alpha channel bitmaps
+        python bfut_Tga2Bmp.py path/to/file.tga
+    2. Apply fshtool
+        fshtool path/to/file_FSH/file.tga
+
+    Note: imagemagick also extracts rgb and alpha channels, respectively. However, the result may not be fshtool-compatible.
         #!/bin/sh
         OFILE="${1%%.*}"
-        convert "${1}" -alpha extract "${OFILE}-a.bmp"
-    2. Apply fshtool 1.22 or later
+        convert "${1}" -alpha off "${OFILE}.BMP"
+        convert "${1}" -alpha extract "${OFILE}-a.BMP"
+
+    Tools mentioned:
+        fshtool v1.22
+        imagemagick
+        bfut_Tga2Bmp.py <https://github.com/bfut/PyScripts>
 """

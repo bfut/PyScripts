@@ -16,13 +16,10 @@
 #    misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 """
-bfut_FeData3Gen.py - generates FeData3 files in script folder
+bfut_FeData3Gen.py - generates a full set of FeData3 files in script folder
 
-HOW TO USE
-    python 'bfut_FeData3Gen.py'
-
-CREDITS
-    format specs due to D. Auroux et al. [1998]
+USAGE
+    python bfut_FeData3Gen.py
 """
 import pathlib
 import struct
@@ -31,7 +28,11 @@ def main():
     script_path = pathlib.Path(__file__).parent
     output_folder = "./"
 
-    # -------------------------------------- Set properties here
+    # ---------------------------------- Set properties here
+
+    # All named values from the offsets table in the next section can be set here.
+    # Values usually are expected to be strings unless documented otherwise.
+    # Certain values are mandatory, others can be omitted.
     data = {
                "id" : "plac",
             "class" : "A",
@@ -69,7 +70,7 @@ def main():
               "color10" : None,
     }
 
-    # --------------------------------------
+    # ---------------------------------- Do not change anything below
     fname = "fedata."
     fendings = [ "bri", "eng", "fre", "ger", "ita", "spa", "swe" ]
 

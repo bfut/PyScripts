@@ -19,7 +19,7 @@
 bfut_Art2Tga.py - from given ART archive unpack TGA data to subfolder
 
 HOW TO USE
-    python 'bfut_Art2Tga.py' /path/to/file.art
+    python "bfut_Art2Tga.py" /path/to/file.art
 """
 import argparse
 import os

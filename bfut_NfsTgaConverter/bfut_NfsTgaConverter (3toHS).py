@@ -57,7 +57,7 @@ APPENDIX
     1. Run the following script in a terminal to extract TGA to rgb and alpha channel bitmaps
         python bfut_Tga2Bmp.py path/to/file.tga
     2. Apply fshtool
-        fshtool path/to/file_FSH/file.tga
+        fshtool path/to/file_FSH/index.fsh
 
     Note: imagemagick also extracts rgb and alpha channels, respectively. However, the result may not be fshtool-compatible.
         #!/bin/sh

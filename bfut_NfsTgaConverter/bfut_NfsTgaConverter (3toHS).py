@@ -19,7 +19,8 @@
     bfut_NfsTgaConverter (3toHS).py - convert NFS3 tga texture alpha channel to NFSHS
 
 USAGE
-    python "bfut_NfsTgaConverter (3toHS).py" [</path/to/file>|</path/to/directory>]
+    python "bfut_NfsTgaConverter (3toHS).py" </path/to/file.tga> [/path/to/output.tga]
+    python "bfut_NfsTgaConverter (3toHS).py" [</path/to/directory>]
 
     If input path is a directory, apply script to all contained *.tga and *.TGA files.
     If no input path is given, the script directory is used.
@@ -65,7 +66,7 @@ APPENDIX
         convert "${1}" -alpha off "${OFILE}.BMP"
         convert "${1}" -alpha extract "${OFILE}-a.BMP"
 
-    Tools mentioned:
+    Required tools:
         fshtool v1.22
         imagemagick
         bfut_Tga2Bmp.py <https://github.com/bfut/PyScripts>
@@ -86,12 +87,14 @@ def main():
     parser.add_argument("path", nargs="*", help="path")
     args = parser.parse_args()
 
-    if args.path and len(args.path) > 0:
-        inpath = pathlib.Path(args.path[0])
-    else:
+    # Handle paths:
+    #       all files in a given directory, overwrite option set in CONFIG
+    #  or
+    #       mandatory inpath, optional outpath
+    if args.path is None or len(args.path) < 1:
         inpath = pathlib.Path(__file__).parent.resolve()  # script path
-
-    # Handle paths
+    else:
+        inpath = pathlib.Path(args.path[0])  # can be dir or file
     if inpath.is_dir():
         inpath = sorted([f for f in inpath.iterdir() if (f.suffix).lower() == ".tga"])
         if len(inpath) < 1:
@@ -99,8 +102,10 @@ def main():
             return
     else:
         inpath = [inpath]
-    if not CONFIG["overwrite"]:
+    if len(args.path) < 2 and not CONFIG["overwrite"]:
         outpath = [(p.parent / (p.stem + "_out" + p.suffix)).with_suffix(".tga") for p in inpath]
+    else:
+        outpath = inpath
 
     # Workload -------------------------
     def print_value_counts(arr):
@@ -275,6 +280,11 @@ def main():
         print_value_counts(alpha)
 
         data[3::4] = alpha
+        def turn_180deg(data: np.ndarray):
+            # debug: reverse (180 deg turn)
+            data = np.reshape(data, newshape=(-1, 4), order="C")  # [[rgba], [rgba], ...]
+            data = data[::-1]
+            return data.flatten()
         buf = data.tobytes()
 
         with open(out_path, mode="wb") as f:

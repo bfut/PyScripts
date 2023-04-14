@@ -16,7 +16,10 @@
 #    misrepresented as being the original software.
 # 3. This notice may not be removed or altered from any source distribution.
 """
-    bfut_Tga2Bmp - extract TGA (rgb+alpha) to fshtool-compatible BMP files, and create matching index.fsh
+    bfut_Tga2Bmp - extract TGA (rgb+alpha) to fshtool-compatible BMP files, and create index.fsh
+
+    For given path/to/example.tga, creates subfolder with 0000.BMP, 0000-a.BMP, and index.fsh
+    This can be compiled to an FSH immediately using fshtool v1.22
 
 USAGE
     python bfut_Tga2Bmp.py [</path/to/file>|</path/to/directory>]
@@ -25,7 +28,7 @@ USAGE
     If no input path is given, the script directory is used.
 
 DESCRIPTION
-    fshtool 1.22 encodes an FSH file with transparency from a RGB 16-bit bitmap
+    fshtool 1.22 encodes an FSH file with transparency from a RGB 24-bit bitmap
     and an Alpha 8-bit bitmap.
 
     The alpha channel bitmap is expected as 8-bit BMP3 bitmap (alpha) with a
@@ -56,45 +59,48 @@ APPENDIX
         convert "${1}" -alpha off "${OFILE}.BMP"
         convert "${1}" -alpha extract "${OFILE}-a.BMP"
 
-    Tools mentioned:
+    Required tools:
         fshtool v1.22
         imagemagick
         bfut_Tga2Bmp.py <https://github.com/bfut/PyScripts>
 """
 import argparse
-import contextlib
+# import contextlib
 import os
 import pathlib
 
 import numpy as np
 
 CONFIG = {
-    # "overwrite" : False,  # if True, overwrites input files
-    # "modus" : "tga2bmp",  # "tga2bmp"|"bmp2tga"
     "verbose" : True,
 }
 
+# def bfut_get_index_for_dashfsh(idxpath: pathlib.Path, width: int, height: int):
+#     """
+#         Return fshtool v1.22 compatible index file as string.
 
-def bfut_get_indexfsh(idxpath: pathlib.Path, width: int, height: int):
-    """
-        Return fshtool v1.22 compatible index file as string.
+#         compare format and BUFSZ to fshtool.c -> void fsh_to_bmp(char *fshname)
+#     """
+#     bufsz = width * height * 4 + 44  # 24-bit TGA
+#     bufsz += 500000
 
-        compare to fshtool.c->void fsh_to_bmp(char *fshname)
-    """
-    return \
-f"""FSHTool generated file -- be very careful when editing
-{idxpath.with_suffix(".fsh")}
-FSH
-SHPI 1 objects, tag GIMX
-BUFSZ 280096
-NOGLOBPAL
-ds00 0000.BMP
-BMP FD +0 {width} {height} {{0 0 0 0}}
-alpha 0000-a.BMP
-#END
-"""
+#     print("Warning: \"index.fsh\" is generated for dash.fsh "
+#           "More than likely this index will have to be replaced for other FSH-targets.")
 
-def bfut_get_tga(buf: bytes, verbose_=False):
+#     return \
+# f"""FSHTool generated file -- be very careful when editing
+# {idxpath.with_suffix(".fsh")}
+# FSH
+# SHPI 1 objects, tag GIMX
+# BUFSZ {bufsz}
+# NOGLOBPAL
+# ds00 0000.BMP
+# BMP FD +0 {width} {height} {{0 0 0 0}}
+# alpha 0000-a.BMP
+# #END
+# """
+
+def bfut_read_tga(buf: bytes, verbose=False):
     tga_ = {
         "tga_id_length_4" : int(buf[0]),
         "tga_width_2" : int.from_bytes(buf[12:14], "little"),
@@ -103,11 +109,11 @@ def bfut_get_tga(buf: bytes, verbose_=False):
     }
     tga_["tga_data_size"] = tga_["tga_width_2"] * tga_["tga_height_2"] * 4
     tga_["hdr_len"] = 0x12 + tga_["tga_id_length_4"]
-    pixels = buf[tga_["hdr_len"]:tga_["hdr_len"] + tga_["tga_data_size"]]
-    if len(buf) < tga_["tga_data_size"]:
-        if verbose_:
+    if len(buf[tga_["hdr_len"]:]) < tga_["tga_data_size"]:
+        if verbose:
             print("TGA format error: missing alpha channel?")
         return None, None
+    pixels = buf[tga_["hdr_len"]:tga_["hdr_len"] + tga_["tga_data_size"]]
     return tga_, pixels
 
 
@@ -152,11 +158,11 @@ def bfut_set_bmp3_header(width: int, height: int, depth: int):
         colorspace256[i*4:i*4+4] = i
     colorspace256 = colorspace256.tobytes("C")
 
-    return bmp3_, colorspace256, hdrsize
+    return bmp3_, colorspace256
 
 
 def bfut_tga2bmp(buf: bytes, channel="alpha", verbose_=False):
-    tga_, pixels = bfut_get_tga(buf, verbose_)
+    tga_, pixels = bfut_read_tga(buf, verbose_)
 
     if tga_ is None:
         return None, None, None, None
@@ -175,19 +181,19 @@ def bfut_tga2bmp(buf: bytes, channel="alpha", verbose_=False):
         pixels = pixels.tobytes("C")
 
     if channel.lower() == "alpha":
-        bmp3_, colorspace256, hdrsize = bfut_set_bmp3_header(
+        bmp3_, colorspace256 = bfut_set_bmp3_header(
             tga_["tga_width_2"],
             tga_["tga_height_2"],
             depth=8)
-        return pixels[3::4], bmp3_, colorspace256, hdrsize
+        return pixels[3::4], bmp3_, colorspace256
     else:  # rgb
-        bmp3_, colorspace256, hdrsize = bfut_set_bmp3_header(
+        bmp3_, colorspace256 = bfut_set_bmp3_header(
             tga_["tga_width_2"],
             tga_["tga_height_2"],
             depth=24)
         pixels = bytearray(pixels)
         del pixels[3::4]
-        return bytes(pixels), bmp3_, None, hdrsize
+        return bytes(pixels), bmp3_, None
 
 
 def main():
@@ -218,8 +224,8 @@ def main():
         print(f"inpath = {inpath}")
         buf = inpath.read_bytes()
 
-        pixels, bmp3, _, _ = bfut_tga2bmp(buf, "rgb", CONFIG["verbose"])
-        pixels_a, bmp3_a, colorspace256, hdrsize = bfut_tga2bmp(buf, "alpha", CONFIG["verbose"])
+        pixels, bmp3, _ = bfut_tga2bmp(buf, "rgb", CONFIG["verbose"])
+        pixels_a, bmp3_a, colorspace256 = bfut_tga2bmp(buf, "alpha", CONFIG["verbose"])
 
         if not pixels is None and not pixels_a is None:
             if not outpath.exists():
@@ -266,20 +272,18 @@ def main():
             if CONFIG["verbose"]:
                 print(f"""alpha = {(outpath / "0000-a").with_suffix(".BMP")}""")
 
-            with open((outpath / "index").with_suffix(".fsh"), "w") as f:
-                with contextlib.redirect_stdout(f):
-                    pass
-                    print(
-                        bfut_get_indexfsh(inpath,
-                            int.from_bytes(bmp3["dib_height_4"], "little"),
-                            int.from_bytes(bmp3["dib_width_4"], "little"))
-                    )
+            # with open((outpath / "index").with_suffix(".fsh"), "w") as f:
+            #     with contextlib.redirect_stdout(f):
+            #         print(bfut_get_index_for_dashfsh(inpath,
+            #             int.from_bytes(bmp3["dib_height_4"], "little"),
+            #             int.from_bytes(bmp3["dib_width_4"], "little")),
+            #             CONFIG["fsh_target"]
+            #         )
             if CONFIG["verbose"]:
                 print(f"""index = {(outpath / "index").with_suffix(".fsh")}""")
 
 
     for ip, op in zip(inpath, outpath):
-        # assume TGA input
         tga2bmp_(ip, op)
 
 if __name__ == "__main__":

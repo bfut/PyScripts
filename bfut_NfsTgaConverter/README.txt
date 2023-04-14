@@ -19,7 +19,8 @@
     convert TGA texture alpha channel
 
 USAGE
-    python "bfut_NfsTgaConverter (Mto3).py" [</path/to/file>|</path/to/directory>]
+    python "bfut_NfsTgaConverter (Mto3).py" </path/to/file.tga> [/path/to/output.tga]
+    python "bfut_NfsTgaConverter (Mto3).py" [</path/to/directory>]
 
     If input path is a directory, apply script to all contained *.tga and *.TGA files.
     If no input path is given, the script directory is used.
@@ -65,7 +66,7 @@ APPENDIX
         convert "${1}" -alpha off "${OFILE}.BMP"
         convert "${1}" -alpha extract "${OFILE}-a.BMP"
 
-    Tools mentioned:
+    Required tools:
         fshtool v1.22
         imagemagick
         bfut_Tga2Bmp.py <https://github.com/bfut/PyScripts>

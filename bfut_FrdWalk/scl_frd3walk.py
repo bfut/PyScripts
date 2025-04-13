@@ -27,7 +27,7 @@ HOW TO USE
 import struct
 
 
-class Item:
+class FRD3WalkItem:
     def __init__(self, ofs, lvl, name = ""):
         self.ofs = ofs
         self.lvl = lvl
@@ -54,7 +54,7 @@ class FRD3Walk:
 
 
     def _FRDFILE3(self):
-        node = Item(self.ofs, self.lvl, "FRDFILE3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "FRDFILE3")
         self.tree.append(node)
 
         self.lvl += 1
@@ -77,7 +77,7 @@ class FRD3Walk:
 
 
     def _TRKBLOCK3(self):
-        node = Item(self.ofs, self.lvl, "TRKBLOCK3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "TRKBLOCK3")
         self.tree.append(node)
 
         self.lvl += 1
@@ -115,7 +115,7 @@ class FRD3Walk:
 
 
     def _POLYGONBLOCK3(self):
-        node = Item(self.ofs, self.lvl, "POLYGONBLOCK3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "POLYGONBLOCK3")
         self.tree.append(node)
 
         self.lvl += 1
@@ -139,7 +139,7 @@ class FRD3Walk:
 
 
     def _OBJPOLYBLOCK3(self):
-        node = Item(self.ofs, self.lvl, "OBJPOLYBLOCK3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "OBJPOLYBLOCK3")
         self.tree.append(node)
 
         self.lvl += 1
@@ -171,7 +171,7 @@ class FRD3Walk:
 
 
     def _XOBJBLOCK3(self):
-        node = Item(self.ofs, self.lvl, "XOBJBLOCK3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "XOBJBLOCK3")
         self.tree.append(node)
 
         self.lvl += 1
@@ -183,7 +183,7 @@ class FRD3Walk:
 
 
     def _XOBJDATA3(self):
-        node = Item(self.ofs, self.lvl, "XOBJDATA3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "XOBJDATA3")
         self.tree.append(node)
 
         self.lvl += 1
@@ -216,7 +216,7 @@ class FRD3Walk:
 
 
     def _TEXTUREBLOCK3(self):
-        node = Item(self.ofs, self.lvl, "TEXTUREBLOCK3")
+        node = FRD3WalkItem(self.ofs, self.lvl, "TEXTUREBLOCK3")
         self.tree.append(node)
 
         self.ofs += 47
